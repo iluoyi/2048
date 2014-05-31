@@ -7,6 +7,8 @@ $grid-row-cells: 4;
 $tile-size: ($field-width - $grid-spacing * ($grid-row-cells + 1)) / $grid-row-cells;
 $tile-border-radius: 3px;
 
+$mobile-threshold: $field-width + 20px;
+
 $text-color: #776E65;
 $bright-text-color: #f9f6f2;
 
@@ -14,6 +16,7 @@ $tile-color: #eee4da;
 $tile-gold-color: #edc22e;
 $tile-gold-glow-color: lighten($tile-gold-color, 15%);
 
+$game-container-margin-top: 40px;
 $game-container-background: #bbada0;
 
 $transition-speed: 100ms;
@@ -32,10 +35,8 @@ body {
   margin: 80px 0;
 }
 
-.heading:after {
-  content: "";
-  display: block;
-  clear: both;
+.heading {
+  @include clearfix;
 }
 
 h1.title {
@@ -169,14 +170,20 @@ hr {
 // Game field mixin used to render CSS at different width
 @mixin game-field {
   .game-container {
-    margin-top: 40px;
+    margin-top: $game-container-margin-top;
     position: relative;
     padding: $grid-spacing;
 
     cursor: default;
     -webkit-touch-callout: none;
+    -ms-touch-callout: none;
+
     -webkit-user-select: none;
     -moz-user-select: none;
+    -ms-user-select: none;
+
+    -ms-touch-action: none;
+    touch-action: none;
 
     background: $game-container-background;
     border-radius: $tile-border-radius * 2;
@@ -218,6 +225,10 @@ hr {
         @include button;
         margin-left: 9px;
         // margin-top: 59px;
+
+	&.keep-playing-button {
+	  display: none;
+	}
       }
 
       @include animation(fade-in 800ms ease $transition-speed * 12);
@@ -226,6 +237,10 @@ hr {
       &.game-won {
         background: rgba($tile-gold-color, .5);
         color: $bright-text-color;
+
+	a.keep-playing-button {
+	  display: inline-block;
+	}
       }
 
       &.game-won, &.game-over {
@@ -371,19 +386,31 @@ hr {
         font-size: 45px;
 
         // Media queries placed here to avoid carrying over the rest of the logic
-        @include smaller(480px) {
+        @include smaller($mobile-threshold) {
           font-size: 25px;
         }
       } @else if $power >= 1000 {
         font-size: 35px;
 
-        @include smaller(480px) {
+        @include smaller($mobile-threshold) {
           font-size: 15px;
         }
       }
     }
 
     $exponent: $exponent + 1;
+  }
+
+  // Super tiles (above 2048)
+  &.tile-super .tile-inner {
+    color: $bright-text-color;
+    background: mix(#333, $tile-gold-color, 95%);
+
+    font-size: 30px;
+
+    @include smaller($mobile-threshold) {
+      font-size: 10px;
+    }
   }
 }
 
@@ -424,21 +451,35 @@ hr {
   @include animation-fill-mode(backwards);
 }
 
+.above-game {
+  @include clearfix;
+}
+
 .game-intro {
+  float: left;
+  line-height: 42px;
   margin-bottom: 0;
+}
+
+.restart-button {
+  @include button;
+  display: block;
+  text-align: center;
+  float: right;
 }
 
 .game-explanation {
   margin-top: 50px;
 }
 
-@include smaller(480px) {
+@include smaller($mobile-threshold) {
   // Redefine variables for smaller screens
   $field-width: 280px;
   $grid-spacing: 10px;
   $grid-row-cells: 4;
   $tile-size: ($field-width - $grid-spacing * ($grid-row-cells + 1)) / $grid-row-cells;
   $tile-border-radius: 3px;
+  $game-container-margin-top: 17px;
 
   html, body {
     font-size: 15px;
@@ -469,12 +510,24 @@ hr {
     margin-bottom: 10px;
   }
 
+  // Show intro and restart button side by side
+  .game-intro {
+    width: 55%;
+    display: block;
+    box-sizing: border-box;
+    line-height: 1.65;
+  }
+
+  .restart-button {
+    width: 42%;
+    padding: 0;
+    display: block;
+    box-sizing: border-box;
+    margin-top: 2px;
+  }
+
   // Render the game field at the right width
   @include game-field;
-
-  .game-container {
-    margin-top: 20px;
-  }
 
   // Rest of the font-size adjustments in the tile class
   .tile .tile-inner {
